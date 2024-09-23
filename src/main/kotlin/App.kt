@@ -2,13 +2,6 @@ import java.io.File
 
 data class Task(val description: String, var isComplete: Boolean)
 
-//var toDo: List<Task> = listOf(
-//    Task("Do the dishes", false),
-//    Task("Walk the dog", true),
-//    Task("Buy groceries", false),
-//    Task("Cook dinner", true),
-//    Task("Do the laundry", false)
-//)
 val file = File("todo.txt")
 
 fun loadFile(): List<Task> {
@@ -27,8 +20,8 @@ var toDo = loadFile()
 
 fun saveFile() {
     file.writeText("")
-    toDo.forEach {
-        file.appendText("${it.description},${it.isComplete}\n")
+    toDo.forEach {task ->
+        file.appendText("${task.description},${task.isComplete}\n")
     }
 }
 
@@ -45,16 +38,25 @@ fun showList() {
 
 fun markTaskAsComplete() {
     print("Enter the task number to mark as complete: ")
-    val task = toDo[readLine().toString().toInt()-1]
-    val index = toDo.indexOf(task)
-    if (index != -1) {
-        toDo[index].isComplete = true
+    var ready = false
+    while (!ready) {
+        val number = readlnOrNull()?.toIntOrNull()
+        if (number != null && number > 0 && number <= toDo.size) {
+            if (toDo[number - 1].isComplete) {
+                print("Task is already complete. Please try again: ")
+            }else {
+                toDo[number - 1].isComplete = true
+                ready = true
+            }
+        }else {
+            print("Invalid task number. Please try again: ")
+        }
     }
 }
 
 fun addTask() {
     val workList = toDo.toMutableList()
-    println("Enter the task description: ")
+    println("Enter the task description:")
     print(">: ")
     val description = readLine().toString()
     var newTask = Task(description, false)
