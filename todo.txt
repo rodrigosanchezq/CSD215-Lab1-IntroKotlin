@@ -1,3 +1,4 @@
 Change car oil,false
 Cook weekly meals,false
 Do the laundry,false
+College Labs,false
