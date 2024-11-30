@@ -74,24 +74,35 @@ fun showList(list: List<Task>) {
  * @return List<Task> updated list of Task objects
  */
 
-fun markTaskAsComplete(list: List<Task>): List<Task> {
-    print("Enter the task number to mark as complete: ")
+fun markTaskAsComplete(list: List<Task>, number: Int?): List<Task> {
     var workList = list.toMutableList()
+    var ready = false
+    if (number != null && number > 0 && number <= workList.size) {
+            workList[number - 1].isComplete = true
+            }
+    else {
+            print("Invalid task number. Please try again: ")
+    }
+    return workList
+}
+
+fun selectToComplete(list: List<Task>): Int?{
+    print("Enter the task number to mark as complete: ")
     var ready = false
     while (!ready) {
         val number = readlnOrNull()?.toIntOrNull()
-        if (number != null && number > 0 && number <= workList.size) {
-            if (workList[number - 1].isComplete) {
+        if (number != null && number > 0 && number <= list.size) {
+            if (list[number - 1].isComplete) {
                 print("Task is already complete. Please try again: ")
             }else {
-                workList[number - 1].isComplete = true
+                return number
                 ready = true
             }
         }else {
             print("Invalid task number. Please try again: ")
         }
     }
-    return list
+    return null
 }
 
 /**
@@ -172,7 +183,7 @@ fun main(){
                 saveFile(addNewTask(defineNewTask(), toDoList(file)), file)
             }
             "c" -> {
-                saveFile(markTaskAsComplete(toDoList(file)), file)
+                saveFile(markTaskAsComplete(toDoList(file), selectToComplete(toDoList(file))), file)
             }
             "r" -> {
                 saveFile(removeCompletedTask(toDoList(file)), file)
@@ -180,6 +191,7 @@ fun main(){
             }
             "q" -> {
                 println("Goodbye!")
+                println("DON'T FORGET THE....")
             }else -> {
             println("Invalid input. Please try again.")
             }
