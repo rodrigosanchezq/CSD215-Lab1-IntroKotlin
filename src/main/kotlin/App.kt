@@ -1,4 +1,15 @@
 import java.io.File
+import kotlin.collections.forEach
+import kotlin.collections.removeAll
+import kotlin.collections.toMutableList
+import kotlin.io.appendText
+import kotlin.io.forEachLine
+import kotlin.io.writeText
+import kotlin.text.lowercase
+import kotlin.text.split
+import kotlin.text.toBoolean
+import kotlin.text.toIntOrNull
+import kotlin.toString
 
 /**
  * Data class to represent a task
@@ -10,18 +21,11 @@ import java.io.File
 data class Task(val description: String, var isComplete: Boolean)
 
 /**
- * variable file is a File object that represents the file (todo.txt) for upload/save the tasks list.
- * variable toDo is a unmutable list of Task objects.
- */
-val file = File("todo.txt")
-var toDo = loadFile()
-
-/**
  * loads the tasks from the file
  * @param file The file to load the tasks from
  * @return List<Task> list of Task objects
  */
-fun loadFile(): List<Task> {
+fun toDoList(file: File): List<Task> {
     if (file.exists()) {
         val fileTasks = mutableListOf<Task>()
         file.forEachLine {
@@ -37,85 +41,108 @@ fun loadFile(): List<Task> {
 /**
  * Saves the tasks to the file
  * @param file The file to save the tasks to.
- * @param toDo The list of Task objects to save to the file.
+ * @param list The list of Task objects to save to the file.
  */
 
-fun saveFile() {
+fun saveFile(list: List<Task>, file: File) {
     file.writeText("")
-    toDo.forEach {task ->
+    list.forEach { task ->
         file.appendText("${task.description},${task.isComplete}\n")
     }
 }
 
 /**
  * Displays the list of tasks
- * @param toDo The list of Task objects to display
+ * @param list The list of Task objects to display
  */
 
-fun showList() {
+fun showList(list: List<Task>) {
     println("\nTasks TO DO:")
-    for (task in toDo) {
-        if (task.isComplete) {
-            println("${toDo.indexOf(task)+1}. [COMPLETE] - ${task.description}")
+    list.forEach() {
+        if (it.isComplete) {
+            println("${list.indexOf(it) + 1}. [COMPLETE] - ${it.description}")
         }else {
-            println("${toDo.indexOf(task)+1}. ${task.description}")
+            println("${list.indexOf(it) + 1}. ${it.description}")
         }
     }
 }
 
 /**
  * Marks a task as complete in the list based in the user input.
- * @param toDo The list of Task objects
- * @param number The number of the task to mark as complete
+ * @param list The list of Task objects
+ * Asks the user for the number of the task to mark as complete
+ * @return List<Task> updated list of Task objects
  */
 
-fun markTaskAsComplete() {
+fun markTaskAsComplete(list: List<Task>, number: Int?): List<Task> {
+    var workList = list.toMutableList()
+    var ready = false
+    if (number != null && number > 0 && number <= workList.size) {
+            workList[number - 1].isComplete = true
+            }
+    else {
+            print("Invalid task number. Please try again: ")
+    }
+    return workList
+}
+
+fun selectToComplete(list: List<Task>): Int?{
     print("Enter the task number to mark as complete: ")
     var ready = false
     while (!ready) {
         val number = readlnOrNull()?.toIntOrNull()
-        if (number != null && number > 0 && number <= toDo.size) {
-            if (toDo[number - 1].isComplete) {
+        if (number != null && number > 0 && number <= list.size) {
+            if (list[number - 1].isComplete) {
                 print("Task is already complete. Please try again: ")
             }else {
-                toDo[number - 1].isComplete = true
+                return number
                 ready = true
             }
         }else {
             print("Invalid task number. Please try again: ")
         }
     }
+    return null
 }
 
 /**
  * Adds a new task in the list.
- * @param toDo The list of Task objects
+ * @param list The list of Task objects
+ * @param task The new Task object to add to the list
+ * @return List<Task> updated list of Task objects
  */
 
-fun addTask() {
-    val workList = toDo.toMutableList()
+fun addNewTask(task: Task, list: List<Task>): List<Task> {
+    val workList = list.toMutableList()
+    workList.add(task)
+    return workList
+}
+
+/**
+ * Asks the user for the task description and creates a new Task object
+ * @return Task object
+ */
+
+fun defineNewTask(): Task {
     println("Enter the task description:")
     print(">: ")
     val description = readLine().toString()
-    var newTask = Task(description, false)
-    workList.add(newTask)
-    toDo = workList.toList()
+    return Task(description, false)
 }
 
 /**
  * Removes the completed tasks from the list
- * @param toDo The list of Task objects
+ * @param list The list of Task objects
  * @return List<Task> updated list of Task objects
  */
-fun removeCompletedTask() {
-    val workList = toDo.toMutableList()
+fun removeCompletedTask(list: List<Task>): List<Task> {
+    val workList = list.toMutableList()
     workList.removeAll { it.isComplete}
-    toDo = workList.toList()
-    println("Completed tasks removed.")
+    return workList
 }
 
 /**
- * Displays the user options menu
+ * Action to display the user options menu
  */
 
 fun displayMenu() {
@@ -128,13 +155,12 @@ fun displayMenu() {
 }
 
 /**
- * Displays the user greeting message and the initial list of tasks
+ * Action tod display the user greeting message and the initial list of tasks
  */
 fun greetingUser() {
     println("\nWelcome to the Kotlin TO-DO List App!")
     println("_____________________________________")
-    println ("Here is your current list of tasks:")
-    showList()
+    println("Here is your current list of tasks:")
 }
 
 /**
@@ -142,7 +168,11 @@ fun greetingUser() {
  */
 
 fun main(){
+
+    val file = File("todo.txt")
+
     greetingUser()
+    showList(toDoList(file))
 
     var userInput : String?
     do {
@@ -150,21 +180,22 @@ fun main(){
         userInput = readLine().toString().lowercase()
         when (userInput) {
             "a" -> {
-                addTask()
+                saveFile(addNewTask(defineNewTask(), toDoList(file)), file)
             }
             "c" -> {
-                markTaskAsComplete()
+                saveFile(markTaskAsComplete(toDoList(file), selectToComplete(toDoList(file))), file)
             }
             "r" -> {
-                removeCompletedTask()
+                saveFile(removeCompletedTask(toDoList(file)), file)
+                println("Completed tasks removed.")
             }
             "q" -> {
                 println("Goodbye!")
-                saveFile()
+                println("DON'T FORGET THE....")
             }else -> {
-                println("Invalid input. Please try again.")
+            println("Invalid input. Please try again.")
             }
         }
-        showList()
+        showList(toDoList(file))
     }while (userInput != "q")
 }
