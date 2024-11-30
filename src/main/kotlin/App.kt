@@ -121,7 +121,7 @@ fun defineNewTask(): Task {
 
 /**
  * Removes the completed tasks from the list
- * @param toDo The list of Task objects
+ * @param list The list of Task objects
  * @return List<Task> updated list of Task objects
  */
 fun removeCompletedTask(list: List<Task>): List<Task> {
